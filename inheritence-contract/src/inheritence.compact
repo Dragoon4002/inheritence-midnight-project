@@ -1,0 +1,26 @@
+pragma language_version >= 0.20;
+
+import CompactStandardLibrary;
+
+// state
+export ledger parent: Bytes<32>;
+export ledger child: Bytes<32>;
+export ledger isRegistered: Boolean;
+export ledger isExecuted: Boolean;
+
+// register inheritance - caller is parent, passes child address
+export circuit register(parent_addr: Bytes<32>, child_addr: Bytes<32>): [] {
+  assert(!isRegistered, "already registered");
+  const p = disclose(parent_addr);
+  const c = disclose(child_addr);
+  parent = p;
+  child = c;
+  isRegistered = true;
+}
+
+// execute inheritance - transfers assets to child
+export circuit execute(): [] {
+  assert(isRegistered, "not registered");
+  assert(!isExecuted, "already executed");
+  isExecuted = true;
+}

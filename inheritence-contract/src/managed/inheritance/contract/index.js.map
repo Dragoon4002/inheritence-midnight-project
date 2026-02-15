@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../../",
+  "sources": ["src/inheritence.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;MAWA,AAAA,QAOC;;;;;cAPuB,aAAsB;cAAE,YAAqB;;;;;;;;;;;;;;;;;;;;;;;;;yCAA7C,aAAsB,+BAAE,YAAqB;;;;;;;;;0CAA7C,aAAsB;0CAAE,YAAqB;;;OAOpE;MAGD,AAAA,OAIC;;;;;;;;;;;;;;;;;;;;;;OAAA;;;;;;GACA;EA1BD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAKA;;;;;;;;;yEAAgC;IAChC;;;;;;;;;yEAA+B;IAC/B;;;;;;;;;yEAAoC;IACpC;;;;;;;;;yEAAkC;;;;;;;GAkBjC;EAfD,AAAA,WAOC,4BAPuB,aAAsB,EAAE,YAAqB;qDAC3D;;;;;;;;;;;0HAAY;;UACd,GAAyB,GAAZ,aAAW;UACxB,GAAwB,GAAX,YAAU;IAC7B;;;;;;;2HAAS,GAAC;;yEAAJ;IACN;;;;;;;2HAAQ,GAAC;;yEAAJ;IACL;;;;;;;;;yEAAY;;GACb;EAGD,AAAA,UAIC;oDAHQ;;;;;;;;;;;yHAAY;;qDACX;;;;;;;;;;;0HAAU;;IAClB;;;;;;;;;yEAAU;;GACX;;;;;;;;;;;;;;;;IApBD;qCAAA;;;;;;;;;;;0GAAgC;KAAA;IAChC;qCAAA;;;;;;;;;;;0GAA+B;KAAA;IAC/B;qCAAA;;;;;;;;;;;0GAAoC;KAAA;IACpC;qCAAA;;;;;;;;;;;0GAAkC;KAAA;;;;;;;;;;"
+}
