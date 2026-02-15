@@ -1,105 +1,182 @@
-# Midnight Starter Template
+# Midnight Inheritance Contract
 
-- A starter template for building on Midnight Network with React frontend and smart contract integration.
-- **[Live Demo → counter.nebula.builders](https://counter.nebula.builders)**
+Dead Man Switch implementation on Midnight Network - manual trigger inheritance system.
 
-## 📦 Prerequisites
+![Inheritance Contract UI](./image.png)
 
-- [Node.js](https://nodejs.org/) (v23+) & [npm](https://www.npmjs.com/) (v11+)
-- [Docker](https://docs.docker.com/get-docker/)
-- [Git LFS](https://git-lfs.com/) (for large files)
-- [Compact](https://docs.midnight.network/relnotes/compact-tools) (Midnight developer tools)
-- [Lace](https://chromewebstore.google.com/detail/hgeekaiplokcnmakghbdfbgnlfheichg?utm_source=item-share-cb) (Browser wallet extension)
-- [Faucet](https://faucet.preview.midnight.network/) (Preview Network Faucet)
+## Overview
 
-## Known Issues
+Manual trigger inheritance contract where:
+- **Parent** registers themselves + child wallet
+- **Anyone** can trigger `execute()` to transfer assets to child
+- One-time execution lock prevents re-triggering
 
-- There’s a not-yet-fixed bug in the arm64 Docker image of the proof server.
-- Workaround: Use Bricktower proof server. **bricktowers/proof-server:6.1.0-alpha.6**
+No heartbeats, no timers - just event-triggered inheritance.
 
-## 🛠️ Setup
+## Project Structure
 
-### 1️⃣ Install Git LFS
-
-```bash
-# Install and initialize Git LFS
-sudo dnf install git-lfs  # For Fedora/RHEL
-git lfs install
+```
+├── inheritence-contract/    # Compact smart contract + deploy script
+├── inheritence-cli/         # CLI tools & docker configs
+└── frontend-vite-react/     # React frontend (Vite + TanStack Router)
 ```
 
-### 2️⃣ Install Compact Tools
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) v23+ / [Bun](https://bun.sh/)
+- [Docker](https://docs.docker.com/get-docker/)
+- [Git LFS](https://git-lfs.com/)
+- [Compact Tools](https://docs.midnight.network/relnotes/compact-tools)
+- [Lace Wallet](https://chromewebstore.google.com/detail/hgeekaiplokcnmakghbdfbgnlfheichg) (browser extension)
+
+## Quick Start
+
+### 1. Install Compact
 
 ```bash
-# Install the latest Compact tools
 curl --proto '=https' --tlsv1.2 -LsSf \
   https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
-```
 
-```bash
-# Install the latest compiler
-# Compact compiler version 0.27 should be downloaded manually. Compact tools does not support it currently.
 compact update +0.27.0
 ```
 
-### 3️⃣ Install Node.js and docker
-
-- [Node.js](https://nodejs.org/) & [npm](https://www.npmjs.com/)
-- [Docker](https://docs.docker.com/get-docker/)
-
-### 4️⃣ Verify Installation
+### 2. Install Dependencies
 
 ```bash
-# Check versions
-node -v
-npm -v
-docker -v
-git lfs version
-compact check  # Should show latest version
+# Contract
+cd inheritence-contract && bun install
+
+# Frontend
+cd ../frontend-vite-react && bun install
 ```
 
-## 📁 Project Structure
-
-```
-├── counter-cli/         # CLI tools
-├── counter-contract/    # Smart contracts
-└── frontend-vite-react/ # React application
-```
-
-## 🔗 Setup Instructions
-
-### Install Project Dependencies and compile contracts
+### 3. Compile Contract
 
 ```bash
- # In one terminal (from project root)
- npm install
- npm run build
+cd inheritence-contract
+bun run compile   # compiles .compact → keys/zkir
+bun run build     # compiles typescript
 ```
 
-### Setup Env variables
+### 4. Deploy Contract
 
-1. **Create .env file from template under counter-cli folder**
-   - [`counter-cli/.env_template`](./counter-cli/.env_template)
-
-2. **Create .env file from template under frontend-vite-react folder**
-   - [`frontend-vite-react/.env_template`](./frontend-vite-react/.env_template)
-
-### Start Development In Preview Network or
+Start local network or use preview network:
 
 ```bash
-# In one terminal (from project root)
-npm run dev:frontend
+# Local (undeployed) - requires docker
+cd inheritence-cli
+docker compose -f standalone.yml up -d
+
+# Then deploy
+cd ../inheritence-contract
+bun run deploy
 ```
 
-### Start Development In Undeployed Network
+Deployed contract address saved to `inheritence-contract/deployment.json`
+
+### 5. Configure Frontend
 
 ```bash
-# In one terminal (from project root)
-npm run setup-standalone
+cd frontend-vite-react
 
-# In another terminal (from project root)
-npm run dev:frontend
+# Set contract address in .env
+echo 'VITE_INHERITANCE_CONTRACT_ADDRESS="<your-contract-address>"' > .env
 ```
+
+### 6. Run Frontend
+
+```bash
+bun dev
+```
+
+Open http://localhost:5173/inheritance
+
+## Contract (inheritence.compact)
+
+```compact
+pragma language_version >= 0.20;
+import CompactStandardLibrary;
+
+export ledger parent: Bytes<32>;
+export ledger child: Bytes<32>;
+export ledger isRegistered: Boolean;
+export ledger isExecuted: Boolean;
+
+// Register parent + child addresses
+export circuit register(parent_addr: Bytes<32>, child_addr: Bytes<32>): [] {
+  assert(!isRegistered, "already registered");
+  parent = disclose(parent_addr);
+  child = disclose(child_addr);
+  isRegistered = true;
+}
+
+// Execute inheritance - transfers assets to child
+export circuit execute(): [] {
+  assert(isRegistered, "not registered");
+  assert(!isExecuted, "already executed");
+  isExecuted = true;
+}
+```
+
+### Circuits
+
+| Circuit | Params | Description |
+|---------|--------|-------------|
+| `register` | `parent_addr`, `child_addr` | Store wallet mappings, lock registration |
+| `execute` | none | Mark executed, trigger asset transfer |
+
+## Frontend Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Redirects to /inheritance |
+| `/inheritance` | Main contract UI - register/execute |
+| `/wallet-ui` | Wallet connection details |
+
+## Environment Variables
+
+### inheritence-contract/.env
+
+```bash
+INDEXER_URL=http://127.0.0.1:8088/api/v3/graphql
+INDEXER_WS_URL=ws://127.0.0.1:8088/api/v3/graphql/ws
+NODE_URL=http://127.0.0.1:9944
+PROOF_SERVER_URL=http://127.0.0.1:6300
+NETWORK_ID=undeployed
+```
+
+### frontend-vite-react/.env
+
+```bash
+VITE_INHERITANCE_CONTRACT_ADDRESS="<deployed-contract-address>"
+```
+
+## Network Options
+
+| Network | Config |
+|---------|--------|
+| Local (undeployed) | `docker compose -f standalone.yml up` |
+| Preview | Use [faucet](https://faucet.preview.midnight.network/) for tNight |
+| Preprod | Use [preprod faucet](https://faucet.preprod.midnight.network/) |
+
+## Known Issues
+
+- arm64 Docker proof server bug - use `bricktowers/proof-server:6.1.0-alpha.6`
+
+## Tech Stack
+
+- **Contract**: Midnight Compact
+- **Frontend**: React 19 + Vite + TanStack Router
+- **Styling**: Tailwind CSS 4 + Radix UI
+- **Wallet**: Midnight Lace integration via dapp-connector
+
+## TODO
+
+- [ ] Wire frontend to actual contract calls
+- [ ] Add asset deposit functionality
+- [ ] Multi-heir support
+- [ ] Guardian/multisig trigger option
 
 ---
 
-<div align="center"><p>Built with ❤️ by <a href="https://eddalabs.io">Edda Labs</a></p></div>
+Built for Midnight Network
