@@ -2,6 +2,9 @@
   "name": "@eddalabs/inheritance-contract",
   "version": "0.1.0",
   "type": "module",
+  "exports": {
+    "./contract": "./src/managed/inheritance/contract/index.js"
+  },
   "scripts": {
     "compile": "compact compile src/inheritence.compact src/managed/inheritance",
     "compile:voting": "compact compile src/voting.compact src/managed/voting",
